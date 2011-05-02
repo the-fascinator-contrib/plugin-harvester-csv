@@ -1,0 +1,14 @@
+{
+    "harvester": {
+        "type": "csv",
+        "csv": {
+            "fileLocation": "${test.dir}/simple.csv",
+            "idColumn": "ID",
+            "recordIDPrefix": "http://www.mypetrules.com/",
+            "headerRow": true,
+            "delimiter": "\t",
+            "includedFields": ["ID", "Name", "Description", "Average"],
+            "batchSize": 1
+        }
+    }
+}
