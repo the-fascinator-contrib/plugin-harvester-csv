@@ -7,6 +7,11 @@
     <properties>
         <fascinator.version>1.0.2</fascinator.version>
     </properties>
+    <scm>
+        <url>http://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</url>
+        <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</connection>
+        <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</developerConnection>
+    </scm>
     <dependencies>
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
