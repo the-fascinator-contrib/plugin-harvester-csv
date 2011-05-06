@@ -2,15 +2,15 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-csv</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>Fascinator - Plugin - Harvester - CSV</name>
     <properties>
         <fascinator.version>1.0.2</fascinator.version>
     </properties>
     <scm>
-        <url>http://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.2</url>
-        <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.2</connection>
-        <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.2</developerConnection>
+        <url>http://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</url>
+        <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</connection>
+        <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</developerConnection>
     </scm>
     <dependencies>
         <dependency>
