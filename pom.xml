@@ -12,6 +12,22 @@
         <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</connection>
         <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</developerConnection>
     </scm>
+   <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>The Fascinator Releases</name>
+            <url>https://fascinator.usq.edu.au/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>The Fascinator Snapshots</name>
+            <url>https://fascinator.usq.edu.au/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <site>
+            <id>plugin-harvester-csv</id>
+            <url>file:///var/www/hudson/the-fascinator-full/plugin-harvester-csv</url>
+        </site>
+    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
