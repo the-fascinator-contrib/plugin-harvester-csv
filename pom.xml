@@ -4,6 +4,11 @@
     <artifactId>plugin-harvester-csv</artifactId>
     <version>1.0.2</version>
     <name>Fascinator - Plugin - Harvester - CSV</name>
+    <parent>
+        <artifactId>organisation</artifactId>
+        <groupId>au.edu.usq.fascinator</groupId>
+        <version>1.0.1</version>
+    </parent>
     <properties>
         <fascinator.version>1.0.2</fascinator.version>
     </properties>
@@ -12,22 +17,7 @@
         <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.2</connection>
         <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.2</developerConnection>
     </scm>
-   <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>The Fascinator Releases</name>
-            <url>https://fascinator.usq.edu.au/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>The Fascinator Snapshots</name>
-            <url>https://fascinator.usq.edu.au/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <site>
-            <id>plugin-harvester-csv</id>
-            <url>file:///var/www/hudson/the-fascinator-full/plugin-harvester-csv</url>
-        </site>
-    </distributionManagement>
+   
     <dependencies>
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
@@ -45,13 +35,6 @@
             <artifactId>opencsv</artifactId>
             <version>2.1</version>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.Ostermiller.util</groupId>
-            <artifactId>csv</artifactId>
-            <version>1.0.7</version>
-        </dependency>
-        -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -59,39 +42,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-                <!-- Compile for Java 6 -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <repositories>
-        <repository>
-            <id>fascinator-releases</id>
-            <url>https://fascinator.usq.edu.au/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>fascinator-snapshots</id>
-            <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>
