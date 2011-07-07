@@ -20,4 +20,4 @@
 /**
  * This package contains classes for harvesting CSV (comma-separated) files
  */
-package au.edu.usq.fascinator.harvester.csv;
+package com.googlecode.fascinator.harvester.csv;

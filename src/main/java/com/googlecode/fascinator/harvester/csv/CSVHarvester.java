@@ -16,17 +16,17 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.harvester.csv;
+package com.googlecode.fascinator.harvester.csv;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.common.JsonObject;
-import au.edu.usq.fascinator.common.JsonSimple;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
+import com.googlecode.fascinator.api.harvester.HarvesterException;
+import com.googlecode.fascinator.api.storage.DigitalObject;
+import com.googlecode.fascinator.api.storage.Payload;
+import com.googlecode.fascinator.common.JsonObject;
+import com.googlecode.fascinator.common.JsonSimple;
+import com.googlecode.fascinator.common.harvester.impl.GenericHarvester;
+import com.googlecode.fascinator.common.storage.StorageUtils;
 
 import java.io.File;
 import java.io.FileInputStream;

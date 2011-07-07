@@ -16,7 +16,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.harvester.csv;
+package com.googlecode.fascinator.harvester.csv;
+
+import com.googlecode.fascinator.api.PluginManager;
+import com.googlecode.fascinator.api.harvester.Harvester;
+import com.googlecode.fascinator.api.storage.Storage;
 
 import java.io.File;
 import java.util.Set;
@@ -27,10 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.harvester.Harvester;
-import au.edu.usq.fascinator.api.storage.Storage;
 
 /**
  * Unit tests for the CSV harvester plugin.
