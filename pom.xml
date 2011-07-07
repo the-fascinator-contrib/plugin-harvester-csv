@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.the-fascinator.plugins</groupId>
     <artifactId>plugin-harvester-csv</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
     <name>Fascinator - Plugin - Harvester - CSV</name>
     <parent>
         <artifactId>organisation</artifactId>
@@ -13,9 +13,9 @@
         <fascinator.version>1.0.3</fascinator.version>
     </properties>
     <scm>
-        <url>http://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</url>
-        <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</connection>
-        <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/trunk</developerConnection>
+        <url>http://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.3</url>
+        <connection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.3</connection>
+        <developerConnection>scm:svn:https://the-fascinator.googlecode.com/svn/the-fascinator/contrib/fascinator/plugins/harvester/csv/tags/plugin-harvester-csv-1.0.3</developerConnection>
     </scm>
    
     <dependencies>
