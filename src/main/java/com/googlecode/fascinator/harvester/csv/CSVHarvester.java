@@ -1,6 +1,7 @@
 /*
  * The Fascinator - Plugin - Harvester - CSV
  * Copyright (C) 2010-2011 University of Southern Queensland
+ * Copyright (C) 2011 Queensland Cyber Infrastructure Foundation (http://www.qcif.edu.au/)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.googlecode.fascinator.api.harvester.HarvesterException;
 import com.googlecode.fascinator.api.storage.DigitalObject;
 import com.googlecode.fascinator.api.storage.Payload;
+import com.googlecode.fascinator.api.storage.StorageException;
 import com.googlecode.fascinator.common.JsonObject;
 import com.googlecode.fascinator.common.JsonSimple;
 import com.googlecode.fascinator.common.harvester.impl.GenericHarvester;
@@ -78,6 +80,10 @@ import org.slf4j.LoggerFactory;
  * Based on Greg Pendlebury's CallistaHarvester.
  * 
  * @author Duncan Dickinson
+ * 
+ * <p>2011 - QCIF undertakes maintenance work.</p>
+ * 
+ * @author Greg Pendlebury
  */
 public class CSVHarvester extends GenericHarvester {
 
@@ -262,6 +268,13 @@ public class CSVHarvester extends GenericHarvester {
         return objectIdList;
     }
 
+    /**
+     * Create an Object in storage from this record.
+     *
+     * @param columns an Array of Strings containing column data
+     * @return String the OID of the stored Object
+     * @throws HarvesterException if an error occurs
+     */
     private String createRecord(String[] columns) throws HarvesterException {
         // by default use the row number as the ID
         String recordId = Long.toString(currentRow);
@@ -284,34 +297,142 @@ public class CSVHarvester extends GenericHarvester {
         JsonObject meta = new JsonObject();
         meta.put("dc.identifier", idPrefix + recordId);
 
-        // store JSON to the object
-        JsonObject json = new JsonObject();
-        json.put("recordIDPrefix", idPrefix);
-        json.put("data", data);
-        json.put("metadata", meta);
+        // What should the OID be?
+        String oid = DigestUtils.md5Hex(filename + idPrefix + recordId);
+        // This will throw any exceptions if errors occur
+        storeJsonInObject(data, meta, oid);
+        return oid;
+    }
+
+    /**
+     * Store the processed data and metadata in the system
+     *
+     * @param dataJson an instantiated JSON object containing data to store
+     * @param metaJson an instantiated JSON object containing metadata to store
+     * @throws HarvesterException if an error occurs
+     */
+    private void storeJsonInObject(JsonObject dataJson, JsonObject metaJson,
+            String oid) throws HarvesterException {
+        // Does the object already exist?
+        DigitalObject object = null;
         try {
-            // create a new object
-            String oid = DigestUtils.md5Hex(filename + idPrefix + recordId);
-            DigitalObject object = StorageUtils.getDigitalObject(getStorage(), oid);
+            object = getStorage().getObject(oid);
+            storeJsonInPayload(dataJson, metaJson, object);
 
-            // Make our JSON human readable
-            JsonSimple jsonSimple = new JsonSimple(json);
-            String jsonString = jsonSimple.toString(true);
-
-            // add the JSON payload
-            InputStream jsonStream = IOUtils.toInputStream(jsonString, "UTF-8");
-            Payload payload = StorageUtils.createOrUpdatePayload(
-                    object, payloadId, jsonStream);
-            payload.setContentType("application/json");
-            payload.close();
-
-            // set the pending flag
-            object.getMetadata().setProperty("render-pending", "true");
-            object.close();
-
-            return oid;
-        } catch (Exception e) {
-            throw new HarvesterException("Failed to store metadata", e);
+        } catch (StorageException ex) {
+            // This is going to be brand new
+            try {
+                object = StorageUtils.getDigitalObject(getStorage(), oid);
+                storeJsonInPayload(dataJson, metaJson, object);
+            } catch (StorageException ex2) {
+                throw new HarvesterException(
+                        "Error creating new digital object: ", ex2);
+            }
         }
+
+        // Set the pending flag
+        if (object != null) {
+            try {
+                object.getMetadata().setProperty("render-pending", "true");
+                object.close();
+            } catch (Exception ex) {
+                log.error("Error setting 'render-pending' flag: ", ex);
+            }
+        }
+    }
+
+    /**
+     * Store the processed data and metadata in a payload
+     *
+     * @param dataJson an instantiated JSON object containing data to store
+     * @param metaJson an instantiated JSON object containing metadata to store
+     * @param object the object to put our payload in
+     * @throws HarvesterException if an error occurs
+     */
+    private void storeJsonInPayload(JsonObject dataJson, JsonObject metaJson,
+            DigitalObject object) throws HarvesterException {
+
+        Payload payload = null;
+        JsonSimple json = new JsonSimple();
+        try {
+            // New payloads
+            payload = object.getPayload(payloadId);
+            //log.debug("Updating existing payload: '{}' => '{}'",
+            //        object.getId(), payloadId);
+
+            // Get the old JSON to merge
+            try {
+                json = new JsonSimple(payload.open());
+            } catch (IOException ex) {
+                log.error("Error parsing existing JSON: '{}' => '{}'",
+                    object.getId(), payloadId);
+                throw new HarvesterException(
+                        "Error parsing existing JSON: ", ex);
+            } finally {
+                payload.close();
+            }
+
+            // Update storage
+            try {
+                InputStream in = streamMergedJson(dataJson, metaJson, json);
+                object.updatePayload(payloadId, in);
+
+            } catch (IOException ex2) {
+                throw new HarvesterException(
+                        "Error processing JSON data: ", ex2);
+            } catch (StorageException ex2) {
+                throw new HarvesterException(
+                        "Error updating payload: ", ex2);
+            }
+
+        } catch (StorageException ex) {
+            // Create a new Payload
+            try {
+                //log.debug("Creating new payload: '{}' => '{}'",
+                //        object.getId(), payloadId);
+                InputStream in = streamMergedJson(dataJson, metaJson, json);
+                payload = object.createStoredPayload(payloadId, in);
+
+            } catch (IOException ex2) {
+                throw new HarvesterException(
+                        "Error parsing JSON encoding: ", ex2);
+            } catch (StorageException ex2) {
+                throw new HarvesterException(
+                        "Error creating new payload: ", ex2);
+            }
+        }
+
+        // Tidy up before we finish
+        if (payload != null) {
+            try {
+                payload.setContentType("application/json");
+                payload.close();
+            } catch (Exception ex) {
+                log.error("Error setting Payload MIME type and closing: ", ex);
+            }
+        }
+    }
+
+    /**
+     * Merge the newly processed data with an (possible) existing data already
+     * present, also convert the completed JSON merge into a Stream for storage.
+     *
+     * @param dataJson an instantiated JSON object containing data to store
+     * @param metaJson an instantiated JSON object containing metadata to store
+     * @param existing an instantiated JsonSimple object with any existing data
+     * @throws IOException if any character encoding issues effect the Stream
+     */
+    private InputStream streamMergedJson(JsonObject dataJson,
+            JsonObject metaJson, JsonSimple existing) throws IOException {
+        // Overwrite and/or create only nodes we consider new data
+        existing.getJsonObject().put("recordIDPrefix", idPrefix);
+        JsonObject existingData = existing.writeObject("data");
+        existingData.putAll(dataJson);
+        JsonObject existingMeta = existing.writeObject("metadata");
+        existingMeta.putAll(metaJson);
+
+        // Turn into a stream to return
+        String jsonString = existing.toString(true);
+        return IOUtils.toInputStream(jsonString, "UTF-8");
     }
 }
