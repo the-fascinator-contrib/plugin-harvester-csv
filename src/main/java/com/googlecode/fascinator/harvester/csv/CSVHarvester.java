@@ -185,7 +185,7 @@ public class CSVHarvester extends GenericHarvester {
             // check that the specified id column is valid
             idColumn = options.getString(null, "idColumn");
             if (idColumn != null && !dataFields.contains(idColumn)) {
-                throw new HarvesterException("'" + idColumn + "' is invalid!");
+                throw new HarvesterException("ID column '" + idColumn + "' was invalid or not found in the data!");
             }
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
