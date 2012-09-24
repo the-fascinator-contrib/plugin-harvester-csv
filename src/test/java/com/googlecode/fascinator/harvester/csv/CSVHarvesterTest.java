@@ -114,6 +114,22 @@ public class CSVHarvesterTest {
         }
         Assert.assertEquals(4, idList.size());
     }
+    
+    /**
+     * Test a field with multiple values
+     *
+     * @throws Exception if any error occurred
+     */
+    @Test
+    public void multi() throws Exception {
+        CSVHarvester csvHarvester = getHarvester("/multi.json");
+        Set<String> idList = csvHarvester.getObjectIdList();
+        log.debug("Testing a multiple value field");
+        for (String oid : idList) {
+            log.debug("{}", oid);
+        }
+        Assert.assertEquals(4, idList.size());
+    }
 
     /**
      * Gets a CSV harvester instance and initialises it with the specified

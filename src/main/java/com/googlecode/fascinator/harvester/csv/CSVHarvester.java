@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,9 +59,11 @@ import org.slf4j.LoggerFactory;
  * <li>recordIDPrefix: Adds a prefix to the value found in the ID column.
  *	For example, setting this as "http://id.example.com/" with an ID value of "453"
  *	will result in http://id.example.com/453 as the ID. 
- * <li>delimiter: The csv delimiter. Comma (,) is the default</li>
+ * <li>delimiter: The csv delimiter. Comma (,) is the default (optional)</li>
  * <li>ignoredFields: An array of fields (columns) ignored by the harvest.</li>
- * <li>includedFields: An array of fields (columns) included by the harvest</li>
+ * <li>includedFields: An array of fields (columns) included by the harvest.</li>
+ * <li>multiValueFields: An array of fields (columns) that contain several values (optional)</li>
+ * <li>multiValueFieldDelimiter: The delimiter for multi-value fields. Semi-colon (;) is the default (optional)</li>
  * <li>payloadId: The payload identifier used to store the JSON data (defaults to "metadata.json")</li>
  * <li>batchSize: The number of rows in the CSV file to process, before being harvested (defaults to 50)</li>
  * <li>maxRows: The number of rows to process where -1 means harvest all (defaults to -1)</li>
@@ -81,9 +84,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Duncan Dickinson
  * 
- * <p>2011 - QCIF undertakes maintenance work.</p>
+ * <p>2011 - 2012 - QCIF undertakes maintenance work.</p>
  * 
  * @author Greg Pendlebury
+ * @author Duncan Dickinson
  */
 public class CSVHarvester extends GenericHarvester {
 
@@ -95,6 +99,8 @@ public class CSVHarvester extends GenericHarvester {
 
     /** Default batch size */
     private static final int DEFAULT_BATCH_SIZE = 50;
+    
+	private static final char DEFAULT_MULTI_VALUE_FIELD_DELIMITER = ';';
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(CSVHarvester.class);
@@ -107,6 +113,9 @@ public class CSVHarvester extends GenericHarvester {
 
     /** Included field names (column) */
     private List<String> includedFields;
+    
+    /** Fields containing more than 1 value. */
+    private List<String> multiValueFields;
 
     /** The name of the column holding the ID */
     private String idColumn;
@@ -114,6 +123,10 @@ public class CSVHarvester extends GenericHarvester {
     /** A prefix for generating the object's ID */
     private String idPrefix;
 
+    private char delimiter;
+    
+    private char multiValueFieldDelimiter;
+    
     /** Debugging limit */
     private long maxRows;
 
@@ -163,16 +176,23 @@ public class CSVHarvester extends GenericHarvester {
 
         idPrefix = options.getString("", "recordIDPrefix");
         maxRows = options.getInteger(-1, "maxRows");
+        delimiter = options.getString(String.valueOf(DEFAULT_DELIMITER), "delimiter").charAt(0);
         ignoredFields = getStringList(options, "ignoreFields");
         includedFields = getStringList(options, "includedFields");
+        multiValueFields = getStringList(options, "multiValueFields");
+        multiValueFieldDelimiter = options.getString(String.valueOf(DEFAULT_MULTI_VALUE_FIELD_DELIMITER), "multiValueFieldDelimiter").charAt(0);
         payloadId = options.getString(DEFAULT_PAYLOAD_ID, "payloadId");
         batchSize = options.getInteger(DEFAULT_BATCH_SIZE, "batchSize");
         hasMore = true;
 
+        if (delimiter == multiValueFieldDelimiter) {
+            throw new HarvesterException("Cannot parse CSV: The requested delimiters for the CSV and multivalue fields are the same: " + delimiter);
+        }
+        
         try {
             // open the CSV file for reading
             Reader fileReader = new InputStreamReader(new FileInputStream(csvDataFile), "UTF-8");
-            char delimiter = options.getString(String.valueOf(DEFAULT_DELIMITER), "delimiter").charAt(0);
+            //char delimiter = options.getString(String.valueOf(DEFAULT_DELIMITER), "delimiter").charAt(0);
             csvReader = new CSVReader(fileReader, delimiter);
 
             // configure the data fields
@@ -284,9 +304,24 @@ public class CSVHarvester extends GenericHarvester {
         for (int index = 0; index < columns.length; index++) {
             String field = dataFields.get(index);
             String value = columns[index];
+            
             // respect fields to be included and ignored
             if (includedFields.contains(field) && !ignoredFields.contains(field)) {
-                data.put(field, value);
+                if (multiValueFields.contains(field)){
+                	//Handle multi-value fields
+                	//if (field.contains(String.valueOf(DEFAULT_MULTI_VALUE_FIELD_DELIMITER))){
+                		try {
+                			CSVReader multi = new CSVReader(new StringReader(value), DEFAULT_MULTI_VALUE_FIELD_DELIMITER);
+                			String[] values = multi.readNext();
+                			multi.close();
+                			data.put(field, values);
+                		} catch (IOException ioe) {
+                            throw new HarvesterException(ioe);
+                        }
+                	//}
+                } else {
+                	data.put(field, value);
+                }
             }
             if (field.equals(idColumn)) {
                 recordId = value;
