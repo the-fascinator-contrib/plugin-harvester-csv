@@ -45,6 +45,8 @@ import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -309,21 +311,20 @@ public class CSVHarvester extends GenericHarvester {
             // respect fields to be included and ignored
             if (includedFields.contains(field) && !ignoredFields.contains(field)) {
                 if (multiValueFields.contains(field)){
-                	//Handle multi-value fields
-                	//if (field.contains(String.valueOf(DEFAULT_MULTI_VALUE_FIELD_DELIMITER))){
                 	log.debug("Processing a multi-value field: " + field + " with value: " + value);
             		try {
-            			CSVReader multi = new CSVReader(new StringReader(value), DEFAULT_MULTI_VALUE_FIELD_DELIMITER);
+            			CSVReader multi = new CSVReader(new StringReader(value), multiValueFieldDelimiter);
             			String[] values = multi.readNext();
             			multi.close();
+            			JSONArray list = new JSONArray();
             			for (String item : values) {
-            				log.debug(item);
+            				log.debug(" Individual value:" + item);
+            				list.add(item);
             			}
-            			data.put(field, values);
+            			data.put(field, list);
             		} catch (IOException ioe) {
                         throw new HarvesterException(ioe);
                     }
-                	//}
                 } else {
                 	data.put(field, value);
                 }
@@ -332,7 +333,7 @@ public class CSVHarvester extends GenericHarvester {
                 recordId = value;
             }
         }
-
+        log.debug(data.toJSONString());
         // create metadata
         JsonObject meta = new JsonObject();
         meta.put("dc.identifier", idPrefix + recordId);
