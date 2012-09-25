@@ -20,6 +20,7 @@ package com.googlecode.fascinator.harvester.csv;
 
 import com.googlecode.fascinator.api.PluginManager;
 import com.googlecode.fascinator.api.harvester.Harvester;
+import com.googlecode.fascinator.api.harvester.HarvesterException;
 import com.googlecode.fascinator.api.storage.Storage;
 
 import java.io.File;
@@ -128,6 +129,19 @@ public class CSVHarvesterTest {
         for (String oid : idList) {
             log.debug("{}", oid);
         }
+        Assert.assertEquals(4, idList.size());
+    }
+    
+    /**
+     * Tests that an exception is thrown when the same delimiter is set for
+     * the delimiter and multiValueFieldDelimiter params
+     * @throws Exception
+     */
+    @Test(expected=HarvesterException.class)
+    public void checkdelimiter() throws Exception {
+    	log.debug("Testing that the same delimiter can't be used for the CSV and multi-value fields");
+    	CSVHarvester csvHarvester = getHarvester("/checkdelimiter.json");
+    	Set<String> idList = csvHarvester.getObjectIdList();
         Assert.assertEquals(4, idList.size());
     }
 

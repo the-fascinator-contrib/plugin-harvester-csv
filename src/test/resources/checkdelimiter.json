@@ -6,9 +6,10 @@
             "idColumn": "ID",
             "recordIDPrefix": "http://www.mypetrules.com/",
             "headerRow": true,
-            "delimiter": "\t",
-            "includedFields": ["ID", "Name", "Description", "Average", "Friends"],
-            "multiValueFields": ["Friends"]
+            "delimiter": ",",
+            "includedFields": ["ID", "Name", "Description", "Average"],
+            "multiValueFields": ["Friends"],
+            "multiValueFieldDelimiter": ","
         }
     }
 }

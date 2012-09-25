@@ -123,8 +123,10 @@ public class CSVHarvester extends GenericHarvester {
     /** A prefix for generating the object's ID */
     private String idPrefix;
 
+    /** The delimiter used in the CSV */
     private char delimiter;
     
+    /** The delimiter used in fields with multiple values */
     private char multiValueFieldDelimiter;
     
     /** Debugging limit */
@@ -304,20 +306,23 @@ public class CSVHarvester extends GenericHarvester {
         for (int index = 0; index < columns.length; index++) {
             String field = dataFields.get(index);
             String value = columns[index];
-            
             // respect fields to be included and ignored
             if (includedFields.contains(field) && !ignoredFields.contains(field)) {
                 if (multiValueFields.contains(field)){
                 	//Handle multi-value fields
                 	//if (field.contains(String.valueOf(DEFAULT_MULTI_VALUE_FIELD_DELIMITER))){
-                		try {
-                			CSVReader multi = new CSVReader(new StringReader(value), DEFAULT_MULTI_VALUE_FIELD_DELIMITER);
-                			String[] values = multi.readNext();
-                			multi.close();
-                			data.put(field, values);
-                		} catch (IOException ioe) {
-                            throw new HarvesterException(ioe);
-                        }
+                	log.debug("Processing a multi-value field: " + field + " with value: " + value);
+            		try {
+            			CSVReader multi = new CSVReader(new StringReader(value), DEFAULT_MULTI_VALUE_FIELD_DELIMITER);
+            			String[] values = multi.readNext();
+            			multi.close();
+            			for (String item : values) {
+            				log.debug(item);
+            			}
+            			data.put(field, values);
+            		} catch (IOException ioe) {
+                        throw new HarvesterException(ioe);
+                    }
                 	//}
                 } else {
                 	data.put(field, value);
