@@ -19,6 +19,30 @@
  */
 package com.googlecode.fascinator.harvester.csv;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.googlecode.fascinator.api.harvester.HarvesterException;
@@ -29,26 +53,6 @@ import com.googlecode.fascinator.common.JsonObject;
 import com.googlecode.fascinator.common.JsonSimple;
 import com.googlecode.fascinator.common.harvester.impl.GenericHarvester;
 import com.googlecode.fascinator.common.storage.StorageUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Harvester for CSV files.
@@ -68,7 +72,13 @@ import org.slf4j.LoggerFactory;
  * <li>multiValueFieldDelimiter: The delimiter for multi-value fields. Semi-colon (;) is the default (optional)</li>
  * <li>payloadId: The payload identifier used to store the JSON data (defaults to "metadata.json")</li>
  * <li>batchSize: The number of rows in the CSV file to process, before being harvested (defaults to 50)</li>
- * <li>maxRows: The number of rows to process where -1 means harvest all (defaults to -1)</li>
+ * <li>maxRows: The number of rows to process where -1 means harvest all (defaults to -1), note that if filters are in place the maxRows applies to all rows not just the ones that pass the filter</li>
+ * <li>filters: If a filter is provided it must match for a row to be imported. The filters are defined as an array of a map of the following
+ * <ul>
+ * 	<li>field: Name of the field (column), note that this field can be one that's being ignored</li>
+ *  <li>multi: Only applies to multi-value fields, can have values of ANY or ALL, ANY is the default (optional)</li>
+ *  <li>regex: The case sensitive regex that must match part of the value in the given column. To do an entire match surround with ^ and $
+ * </ul></li>
  * </ul>
  * <p>
  * You can select to harvest all columns (fields) or be selective:
@@ -87,12 +97,108 @@ import org.slf4j.LoggerFactory;
  * @author Duncan Dickinson
  * 
  * <p>2011 - 2012 - QCIF undertakes maintenance work.</p>
+ * <p>2012 - innodev.com.au addition for filtering</p>
  * 
  * @author Greg Pendlebury
  * @author Duncan Dickinson
  */
 public class CSVHarvester extends GenericHarvester {
 
+	/**
+	 * How a match should behave for a multi-value field
+	 */
+	private enum MultiMatchType {
+		/**
+		 * In a multi-value field, only 1 value has to match the provided pattern.
+		 */
+		ANY,
+		/**
+		 * In a multi-value field, all values have to match the provided pattern. An empty set of values is considered to fail the ALL condition.
+		 */
+		ALL;
+	}
+	
+	/**
+	 * Pass in a single or multiple values to see if it passes the filter.
+	 * @author James Andrews
+	 */
+	private class Filter {
+		
+		private String field;
+		private MultiMatchType type;
+		private Pattern regex;
+	
+		/**
+		 * Creates a filter from a JSON object
+		 * @param json The json to extract "field","operation" (optional) and "regex" from
+		 * @throws HarvesterException if
+		 * <ul><li>field is missing</li>
+		 * <li>operation is not a valid operation</li>
+		 * <li>regex is missing or not a valid regex string</li>
+		 * </ul>
+		 */
+		public Filter(JsonSimple json) throws HarvesterException {
+			field = json.getString(null, "field");
+			if (field == null) {
+				throw new HarvesterException("In a filter definition, missing the mandatory attribute 'field'");
+			}
+			String matchTypeStr = json.getString("ANY", "multi");
+			try {
+				type = MultiMatchType.valueOf(matchTypeStr);
+			} catch (Exception e) {
+				throw new HarvesterException("In a filter definition, invalid filter match type '" + matchTypeStr + "', valid values are " + MultiMatchType.values());
+			}
+			String regexStr = json.getString(null, "regex");
+			if (regexStr == null) {
+				throw new HarvesterException("In a filter definition, missing the mandatory attribute 'regex'");
+			}
+			try {
+				regex = Pattern.compile(regexStr,Pattern.MULTILINE);
+			} catch (PatternSyntaxException e) {
+				throw new HarvesterException("In a filter definition, provided regex was invalid " + e.getMessage(),e);
+			}
+		}
+		
+		public String getField() {
+			return field;
+		}
+		
+		/**
+		 * Returns if the one string value matches this filter.
+		 * @param str String we're testing against
+		 * @return If the parameter matches our filter
+		 */
+		public boolean matches(String str) {
+			return regex.matcher(str).find();
+		}
+		
+		/**
+		 * Returns if the multi-values pass out filter based on the filter and the MultiMatchType.
+		 * @param strs An array of values
+		 * @return if the array of values passes the filter
+		 */
+		public boolean matches(String[] strs) {
+			if (strs.length == 0) {
+				return false;
+			}
+			for(String str : strs) {
+				if (matches(str)) {
+					if (type == MultiMatchType.ANY) {
+						return true;
+					}
+				} else if (type == MultiMatchType.ALL) {
+					return false;
+				}
+			}
+			return type == MultiMatchType.ALL;
+		}
+		
+		@Override
+		public String toString() {
+			return "Filter (" + type + "," + regex.pattern() + ")"; 
+		}
+	}
+	
     /** Default column delimiter */
     private static final char DEFAULT_DELIMITER = ',';
 
@@ -152,6 +258,9 @@ public class CSVHarvester extends GenericHarvester {
     /** File name */
     private String filename;
 
+    /** A list of filters by field name */
+    private Map<String,List<Filter>> filters;
+    
     /**
      * Constructs the CSV harvester plugin.
      */
@@ -188,7 +297,7 @@ public class CSVHarvester extends GenericHarvester {
         payloadId = options.getString(DEFAULT_PAYLOAD_ID, "payloadId");
         batchSize = options.getInteger(DEFAULT_BATCH_SIZE, "batchSize");
         hasMore = true;
-
+                
         if (delimiter == multiValueFieldDelimiter) {
             throw new HarvesterException("Cannot parse CSV: The requested delimiters for the CSV and multivalue fields are the same: " + delimiter);
         }
@@ -211,6 +320,27 @@ public class CSVHarvester extends GenericHarvester {
             if (idColumn != null && !dataFields.contains(idColumn)) {
                 throw new HarvesterException("ID column '" + idColumn + "' was invalid or not found in the data!");
             }
+            
+            // load filters, all filters must pass for the row to be considered
+            filters = new HashMap<String,List<Filter>>();
+            List<JsonSimple> filterConfig = options.getJsonSimpleList("filters");
+            if (filterConfig != null) {
+            	for(JsonSimple singleFilterConfig : filterConfig) {
+            		Filter filter = new Filter(singleFilterConfig);
+            		String field = filter.getField();
+            		if (!dataFields.contains(field)) {
+            			throw new HarvesterException("Filter column '" + field + "' was not found in the data");
+            		}
+            		List<Filter> existingFilters = filters.get(field);
+            		if (existingFilters == null) {
+            			existingFilters = new ArrayList<Filter>();
+            			filters.put(field, existingFilters);
+            		}
+            		existingFilters.add(filter);
+            	}
+            }
+            
+            
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
@@ -275,7 +405,11 @@ public class CSVHarvester extends GenericHarvester {
             while (!done && (row = csvReader.readNext()) != null) {
                 rowCount++;
                 currentRow++;
-                objectIdList.add(createRecord(row));
+                
+                String recordId = createRecord(row);
+                if (recordId != null) {
+	                objectIdList.add(recordId);
+                }
                 if (rowCount % batchSize == 0) {
                     log.debug("Batch size reached at row {}", currentRow);
                     break;
@@ -296,7 +430,7 @@ public class CSVHarvester extends GenericHarvester {
      * Create an Object in storage from this record.
      *
      * @param columns an Array of Strings containing column data
-     * @return String the OID of the stored Object
+     * @return String the OID of the stored Object or null if the record was filtered out
      * @throws HarvesterException if an error occurs
      */
     private String createRecord(String[] columns) throws HarvesterException {
@@ -309,24 +443,53 @@ public class CSVHarvester extends GenericHarvester {
             String field = dataFields.get(index);
             String value = columns[index];
             // respect fields to be included and ignored
-            if (includedFields.contains(field) && !ignoredFields.contains(field)) {
-                if (multiValueFields.contains(field)){
+            boolean include = includedFields.contains(field) && !ignoredFields.contains(field);
+            boolean hasFilters = filters.containsKey(field);
+            List<Filter> fieldFilters = filters.get(field);
+            
+            // we don't want to include or filter based on this column
+            if (!include && !hasFilters) {
+            	continue;
+            } else {
+            	if (multiValueFields.contains(field)){
                 	log.debug("Processing a multi-value field: " + field + " with value: " + value);
             		try {
             			CSVReader multi = new CSVReader(new StringReader(value), multiValueFieldDelimiter);
             			String[] values = multi.readNext();
             			multi.close();
-            			JSONArray list = new JSONArray();
-            			for (String item : values) {
-            				log.debug(" Individual value:" + item);
-            				list.add(item);
+            			
+            			if (hasFilters) {
+            				for(Filter f : fieldFilters) {
+            					if (!f.matches(values)) {
+            						log.debug("multi-value field: " + field + " with value: " + value + " failed filter " + f);
+            						return null;
+            					}
+            				}
             			}
-            			data.put(field, list);
+            			if (include) {
+	            			JSONArray list = new JSONArray();
+	            			for (String item : values) {
+	            				log.debug(" Individual value:" + item);
+	            				list.add(item);
+	            			}
+	            			
+	            			data.put(field, list);
+            			}
             		} catch (IOException ioe) {
                         throw new HarvesterException(ioe);
                     }
                 } else {
-                	data.put(field, value);
+                	if (hasFilters) {
+                		for(Filter f : fieldFilters) {
+        					if (!f.matches(value)) {
+        						log.debug("field: " + field + " with value: " + value + " failed filter " + f);
+        						return null;
+        					}
+        				}
+                	}
+                	if (include) {
+                		data.put(field, value);
+                	}
                 }
             }
             if (field.equals(idColumn)) {
