@@ -130,7 +130,7 @@ public class CSVHarvesterTest {
         for (String oid : idList) {
             log.debug("{}", oid);
         }
-        Assert.assertEquals(4, idList.size());
+        Assert.assertEquals(5, idList.size());
     }
     
     /**

@@ -178,7 +178,7 @@ public class CSVHarvester extends GenericHarvester {
 		 * @return if the array of values passes the filter
 		 */
 		public boolean matches(String[] strs) {
-			if (strs.length == 0) {
+			if (strs == null || strs.length == 0) {
 				return false;
 			}
 			for(String str : strs) {
@@ -433,7 +433,7 @@ public class CSVHarvester extends GenericHarvester {
      * @return String the OID of the stored Object or null if the record was filtered out
      * @throws HarvesterException if an error occurs
      */
-    private String createRecord(String[] columns) throws HarvesterException {
+	private String createRecord(String[] columns) throws HarvesterException {
         // by default use the row number as the ID
         String recordId = Long.toString(currentRow);
 
@@ -468,9 +468,11 @@ public class CSVHarvester extends GenericHarvester {
             			}
             			if (include) {
 	            			JSONArray list = new JSONArray();
-	            			for (String item : values) {
-	            				log.debug(" Individual value:" + item);
-	            				list.add(item);
+	            			if (values != null) {
+		            			for (String item : values) {
+		            				log.debug(" Individual value:" + item);
+		            				list.add(item);
+		            			}
 	            			}
 	            			
 	            			data.put(field, list);
