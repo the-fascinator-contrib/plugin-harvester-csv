@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.googlecode.the-fascinator.plugins</groupId>
 	<artifactId>plugin-harvester-csv</artifactId>
-	<version>1.1.1-UoA-SNAPSHOT</version>
+	<version>1.1.1-UoA</version>
 	<name>Fascinator - Plugin - Harvester - CSV</name>
 	<parent>
 		<artifactId>organisation</artifactId>
@@ -62,5 +61,6 @@
 	<scm>
 		<url>https://github.com/innodev-au/plugin-harvester-csv</url>
 		<developerConnection>scm:git:https://github.com/innodev-au/plugin-harvester-csv.git</developerConnection>
-	</scm>
+	  <tag>plugin-harvester-csv-1.1.1-UoA</tag>
+  </scm>
 </project>
