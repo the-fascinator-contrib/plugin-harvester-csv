@@ -1,0 +1,19 @@
+{
+    "harvester": {
+        "type": "csv",
+        "csv": {
+            "fileLocation": "${test.dir}/blank-values.csv",
+            "idColumn": "ID",
+            "recordIDPrefix": "http://www.mypetrules.com/",
+            "headerRow": true,
+            "delimiter": ",",
+            "includedFields": ["ID", "Name", "Description", "Average"],
+            "filters": [
+            	{
+            	    "field":"Description",
+            		"regex":"^$"
+            	}
+            ]
+        }
+    }
+}
