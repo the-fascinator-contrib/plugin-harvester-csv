@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.googlecode.the-fascinator.plugins</groupId>
 	<artifactId>plugin-harvester-csv</artifactId>
-	<version>1.1.3-UoA</version>
+	<version>1.1.4-UoA-SNAPSHOT</version>
 	<name>Fascinator - Plugin - Harvester - CSV</name>
 	<parent>
 		<artifactId>organisation</artifactId>
@@ -61,6 +61,6 @@
 	<scm>
 		<url>https://github.com/innodev-au/plugin-harvester-csv</url>
 		<developerConnection>scm:git:https://github.com/innodev-au/plugin-harvester-csv.git</developerConnection>
-	  <tag>plugin-harvester-csv-1.1.3-UoA</tag>
+	  <tag>HEAD</tag>
   </scm>
 </project>
