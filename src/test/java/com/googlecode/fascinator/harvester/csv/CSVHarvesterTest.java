@@ -71,6 +71,7 @@ public class CSVHarvesterTest {
         Set<String> idList = csvHarvester.getObjectIdList();
         Assert.assertEquals(4, idList.size());
     }
+    
 
     /**
      * Test getting a list of object identifiers.
@@ -129,7 +130,48 @@ public class CSVHarvesterTest {
         for (String oid : idList) {
             log.debug("{}", oid);
         }
-        Assert.assertEquals(4, idList.size());
+        Assert.assertEquals(5, idList.size());
+    }
+    
+    /**
+     * Test a filter on a single value
+     * @throws Exception if any error occurred
+     */
+    @Test
+    public void simpleFilter() throws Exception {
+        CSVHarvester csvHarvester = getHarvester("/simple-filter.json");
+        Set<String> idList = csvHarvester.getObjectIdList();
+        Assert.assertEquals(2, idList.size());
+    }
+    
+    /**
+     * Test a field with multiple values being filtered
+     * @throws Exception if any error occurred
+     */
+    @Test
+    public void multiFilter() throws Exception {
+        CSVHarvester csvHarvester = getHarvester("/multi-filter.json");
+        Set<String> idList = csvHarvester.getObjectIdList();
+        log.debug("Testing a multiple value field with a filter");
+        for (String oid : idList) {
+            log.debug("{}", oid);
+        }
+        Assert.assertEquals(2, idList.size());
+    }
+    
+    /**
+     * Test a field with multiple values being filtered
+     * @throws Exception if any error occurred
+     */
+    @Test
+    public void multiFilterAll() throws Exception {
+        CSVHarvester csvHarvester = getHarvester("/multi-filter-all.json");
+        Set<String> idList = csvHarvester.getObjectIdList();
+        log.debug("Testing a multiple value field with a filter");
+        for (String oid : idList) {
+            log.debug("{}", oid);
+        }
+        Assert.assertEquals(1, idList.size());
     }
     
     /**

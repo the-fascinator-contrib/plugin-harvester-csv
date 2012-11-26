@@ -9,3 +9,5 @@ target/
 .classpath
 
 bin/
+/release.properties
+/pom.xml.releaseBackup
