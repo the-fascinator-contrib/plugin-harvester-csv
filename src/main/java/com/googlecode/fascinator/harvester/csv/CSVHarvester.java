@@ -248,6 +248,15 @@ public class CSVHarvester extends GenericHarvester {
 
     /** Current row */
     private long currentRow;
+    
+    /** Modified count */
+    private long modifiedCount;
+    
+    /** Un modified count */
+    private long unModifiedCount;
+    
+    /** New record count */
+    private long newRecordCount;
 
     /** Whether or not there are more files to harvest */
     private boolean hasMore;
@@ -523,13 +532,18 @@ public class CSVHarvester extends GenericHarvester {
         DigitalObject object = null;
         try {
             object = getStorage().getObject(oid);
+            
+            boolean flag = isModifiedRecord(oid, dataJson);
+            
             storeJsonInPayload(dataJson, metaJson, object);
+            object.getMetadata().setProperty("isNew", "false");
 
         } catch (StorageException ex) {
             // This is going to be brand new
             try {
                 object = StorageUtils.getDigitalObject(getStorage(), oid);
                 storeJsonInPayload(dataJson, metaJson, object);
+                object.getMetadata().setProperty("isNew", "true");
             } catch (StorageException ex2) {
                 throw new HarvesterException(
                         "Error creating new digital object: ", ex2);
@@ -545,6 +559,37 @@ public class CSVHarvester extends GenericHarvester {
                 log.error("Error setting 'render-pending' flag: ", ex);
             }
         }
+    }
+    
+    /**
+     * Check if this recored is going to be modified.
+     * 
+     * @param oid an object id to check
+     * @param dataJson an instantiated JSON object containing data to store
+     * @returns true if modifies, false otherwise
+     */
+    private boolean isModifiedRecord(String oid, JsonObject dataJson)
+    {
+    	DigitalObject object = null;
+    	JsonObject jo = null;
+    	try {
+    		
+			object = getStorage().getObject(oid);
+			Payload p = object.getPayload(payloadId);
+			jo = new JsonSimple(p.open()).getObject("data");
+			jo.equals(dataJson);
+			
+		} catch (StorageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (HarvesterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return false;
     }
 
     /**
