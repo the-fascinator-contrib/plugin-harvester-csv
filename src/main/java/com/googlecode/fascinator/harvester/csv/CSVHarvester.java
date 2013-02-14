@@ -402,7 +402,7 @@ public class CSVHarvester extends GenericHarvester {
      * Get loggins related to harvests
      * 
      */
-    public String getHarvestLoggingString()
+    private String getHarvestLoggingString()
     {
     	
     	return "Total records harvested : "
@@ -547,25 +547,25 @@ public class CSVHarvester extends GenericHarvester {
         try {
             object = getStorage().getObject(oid);
             
-            if(isModifiedRecord(oid, dataJson))
-            {
-            	modifiedCount++;
-            }
-            else
-            {
-            	unModifiedCount++;
-            }
+//            if(isModifiedRecord(oid, dataJson))
+//            {
+//            	modifiedCount++;
+//            }
+//            else
+//            {
+//            	unModifiedCount++;
+//            }
             
             storeJsonInPayload(dataJson, metaJson, object);
-            object.getMetadata().setProperty("isNew", "false");
+            object.getMetadata().put("isModified", isModifiedRecord(oid, dataJson));
 
         } catch (StorageException ex) {
             // This is going to be brand new
             try {
                 object = StorageUtils.getDigitalObject(getStorage(), oid);
                 storeJsonInPayload(dataJson, metaJson, object);
-                newRecordCount++;
-//                object.getMetadata().setProperty("isNew", "true");
+                // newRecordCount++;
+                object.getMetadata().put("isNew", true);
             } catch (StorageException ex2) {
                 throw new HarvesterException(
                         "Error creating new digital object: ", ex2);
@@ -584,7 +584,7 @@ public class CSVHarvester extends GenericHarvester {
     }
     
     /**
-     * Check if this recored is going to be modified.
+     * Check if this record is going to be modified.
      * 
      * @param oid an object id to check
      * @param dataJson an instantiated JSON object containing data to store
