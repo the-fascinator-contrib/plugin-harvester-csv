@@ -397,6 +397,20 @@ public class CSVHarvester extends GenericHarvester {
     public boolean hasMoreObjects() {
         return hasMore;
     }
+    
+    /**
+     * Get loggins related to harvests
+     * 
+     */
+    public String getHarvestLoggingString()
+    {
+    	
+    	return "Total records harvested : "
+    			+ currentRow + "\nNew records created : " 
+    			+ newRecordCount + "\nNumber of modified records : "
+    			+ modifiedCount + "\nNumber of not modified records : "
+    			+ unModifiedCount + "\nTotal number of records in storage :";
+    }
 
     /**
      * Harvest the next batch of rows and return their object IDs.
@@ -533,7 +547,14 @@ public class CSVHarvester extends GenericHarvester {
         try {
             object = getStorage().getObject(oid);
             
-            boolean flag = isModifiedRecord(oid, dataJson);
+            if(isModifiedRecord(oid, dataJson))
+            {
+            	modifiedCount++;
+            }
+            else
+            {
+            	unModifiedCount++;
+            }
             
             storeJsonInPayload(dataJson, metaJson, object);
             object.getMetadata().setProperty("isNew", "false");
@@ -543,7 +564,8 @@ public class CSVHarvester extends GenericHarvester {
             try {
                 object = StorageUtils.getDigitalObject(getStorage(), oid);
                 storeJsonInPayload(dataJson, metaJson, object);
-                object.getMetadata().setProperty("isNew", "true");
+                newRecordCount++;
+//                object.getMetadata().setProperty("isNew", "true");
             } catch (StorageException ex2) {
                 throw new HarvesterException(
                         "Error creating new digital object: ", ex2);
@@ -577,7 +599,7 @@ public class CSVHarvester extends GenericHarvester {
 			object = getStorage().getObject(oid);
 			Payload p = object.getPayload(payloadId);
 			jo = new JsonSimple(p.open()).getObject("data");
-			jo.equals(dataJson);
+			return jo.equals(dataJson);
 			
 		} catch (StorageException e) {
 			// TODO Auto-generated catch block
