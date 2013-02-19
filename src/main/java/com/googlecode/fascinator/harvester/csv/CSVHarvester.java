@@ -249,15 +249,6 @@ public class CSVHarvester extends GenericHarvester {
     /** Current row */
     private long currentRow;
     
-    /** Modified count */
-    private long modifiedCount;
-    
-    /** Un modified count */
-    private long unModifiedCount;
-    
-    /** New record count */
-    private long newRecordCount;
-
     /** Whether or not there are more files to harvest */
     private boolean hasMore;
 
@@ -399,20 +390,6 @@ public class CSVHarvester extends GenericHarvester {
     }
     
     /**
-     * Get loggins related to harvests
-     * 
-     */
-    private String getHarvestLoggingString()
-    {
-    	
-    	return "Total records harvested : "
-    			+ currentRow + "\nNew records created : " 
-    			+ newRecordCount + "\nNumber of modified records : "
-    			+ modifiedCount + "\nNumber of not modified records : "
-    			+ unModifiedCount + "\nTotal number of records in storage :";
-    }
-
-    /**
      * Harvest the next batch of rows and return their object IDs.
      *
      * @return the set of object IDs just harvested
@@ -546,18 +523,9 @@ public class CSVHarvester extends GenericHarvester {
         DigitalObject object = null;
         try {
             object = getStorage().getObject(oid);
-            
-//            if(isModifiedRecord(oid, dataJson))
-//            {
-//            	modifiedCount++;
-//            }
-//            else
-//            {
-//            	unModifiedCount++;
-//            }
-            
+            boolean isModified = isModifiedRecord(oid, dataJson);
             storeJsonInPayload(dataJson, metaJson, object);
-            object.getMetadata().put("isModified", isModifiedRecord(oid, dataJson));
+            object.getMetadata().setProperty("isModified", Boolean.toString(isModified));
 
         } catch (StorageException ex) {
             // This is going to be brand new
@@ -565,7 +533,7 @@ public class CSVHarvester extends GenericHarvester {
                 object = StorageUtils.getDigitalObject(getStorage(), oid);
                 storeJsonInPayload(dataJson, metaJson, object);
                 // newRecordCount++;
-                object.getMetadata().put("isNew", true);
+                object.getMetadata().setProperty("isNew", "true");
             } catch (StorageException ex2) {
                 throw new HarvesterException(
                         "Error creating new digital object: ", ex2);
@@ -595,11 +563,10 @@ public class CSVHarvester extends GenericHarvester {
     	DigitalObject object = null;
     	JsonObject jo = null;
     	try {
-    		
 			object = getStorage().getObject(oid);
 			Payload p = object.getPayload(payloadId);
 			jo = new JsonSimple(p.open()).getObject("data");
-			return jo.equals(dataJson);
+			return !jo.equals(dataJson);
 			
 		} catch (StorageException e) {
 			// TODO Auto-generated catch block
