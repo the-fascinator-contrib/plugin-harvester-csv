@@ -153,7 +153,8 @@ public class CSVHarvester extends GenericHarvester {
 				throw new HarvesterException("In a filter definition, missing the mandatory attribute 'regex'");
 			}
 			try {
-				regex = Pattern.compile(regexStr,Pattern.MULTILINE);
+				regex = Pattern.compile(regexStr);
+//				regex = Pattern.compile(regexStr,Pattern.MULTILINE);
 			} catch (PatternSyntaxException e) {
 				throw new HarvesterException("In a filter definition, provided regex was invalid " + e.getMessage(),e);
 			}
@@ -305,7 +306,6 @@ public class CSVHarvester extends GenericHarvester {
         try {
             // open the CSV file for reading
             Reader fileReader = new InputStreamReader(new FileInputStream(csvDataFile), "UTF-8");
-            //char delimiter = options.getString(String.valueOf(DEFAULT_DELIMITER), "delimiter").charAt(0);
             csvReader = new CSVReader(fileReader, delimiter);
 
             // configure the data fields
@@ -461,7 +461,7 @@ public class CSVHarvester extends GenericHarvester {
             			if (hasFilters) {
             				for(Filter f : fieldFilters) {
             					if (!f.matches(values)) {
-            						log.debug("multi-value field: " + field + " with value: " + value + " failed filter " + f);
+            						log.debug("multi-value field '" + field + "' with value '" + value + "' failed filter " + f);
             						return null;
             					}
             				}
@@ -484,7 +484,7 @@ public class CSVHarvester extends GenericHarvester {
                 	if (hasFilters) {
                 		for(Filter f : fieldFilters) {
         					if (!f.matches(value)) {
-        						log.debug("field: " + field + " with value: " + value + " failed filter " + f);
+        						log.debug("field '" + field + "' with value '" + value + "' failed filter " + f);
         						return null;
         					}
         				}

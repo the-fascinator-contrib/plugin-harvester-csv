@@ -18,11 +18,6 @@
  */
 package com.googlecode.fascinator.harvester.csv;
 
-import com.googlecode.fascinator.api.PluginManager;
-import com.googlecode.fascinator.api.harvester.Harvester;
-import com.googlecode.fascinator.api.harvester.HarvesterException;
-import com.googlecode.fascinator.api.storage.Storage;
-
 import java.io.File;
 import java.util.Set;
 
@@ -32,6 +27,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.googlecode.fascinator.api.PluginManager;
+import com.googlecode.fascinator.api.harvester.Harvester;
+import com.googlecode.fascinator.api.harvester.HarvesterException;
+import com.googlecode.fascinator.api.storage.Storage;
 
 /**
  * Unit tests for the CSV harvester plugin.
@@ -187,6 +187,18 @@ public class CSVHarvesterTest {
         Assert.assertEquals(4, idList.size());
     }
 
+    /**
+     * Test a filter on blank values
+     * @throws Exception if any error occurred
+     */
+    @Test
+    public void blankValueFilter() throws Exception {
+    	log.debug("Testing a blank value (empty string) filter");
+        CSVHarvester csvHarvester = getHarvester("/blank-entry-filter.json");
+        Set<String> idList = csvHarvester.getObjectIdList();
+        Assert.assertEquals(1, idList.size());
+    }
+    
     /**
      * Gets a CSV harvester instance and initialises it with the specified
      * configuration file.
