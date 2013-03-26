@@ -569,14 +569,11 @@ public class CSVHarvester extends GenericHarvester {
 			return !jo.equals(dataJson);
 			
 		} catch (StorageException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error retrieving object from storage: ", e);
 		} catch (HarvesterException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error getting harvested object' flag: ", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error accessing the storage' flag: ", e);
 		}
     	return false;
     }
