@@ -1,0 +1,19 @@
+sudo: required
+language: java
+services:
+- docker
+before_install:
+- mkdir /tmp/build
+- docker pull qcifengineering/redbox-builder
+- docker run -v /tmp/build:/build -e "CLONEPATH=https://github.com/the-fascinator-contrib/plugin-harvester-csv.git"
+  qcifengineering/redbox-builder
+install: true
+script: true
+after_success:
+- docker run -v /tmp/build:/build -e "SONATYPE_USERNAME=$SONATYPE_USERNAME" -e "SONATYPE_PASSWORD=$SONATYPE_PASSWORD"
+  qcifengineering/redbox-builder /bin/bash -c "cd build/src;mvn --settings /m2_repo/travis-settings.xml
+  -Dmaven.repo.local=/m2_repo -DskipTests=true deploy"
+env:
+  global:
+  - secure: DZjuHgACReGhtoBTOYrG+uM+TN3EIQLTa4/GSNMzolOYr4gOFl265xmhoxj5IASy80pRJnpthA5KZl8XkIH0QZSxueXZbG9MHhQ+S0XX3RpwxtrAUZryS7LgrhRgu1sv8hjyqlvjJhnIU1+WXw2NT7GvsACNyJ2Oqrp8Aw1iMa0zpHb/hcQiBlu2kJMldEzFNvjSGQ10TOSoYQM5tbGZ72eYwDNcumPhCIOvKkf1atH5Gup/iG2fQf7vvj3bsvVO5Xn0dggUkFrE9RSakmQNp+MdxfE8hvjrvuDCwe2MoC3ElPWD0ft1alwondqhJctWJKG0vFRbyeQfhhr26zEWSM7mITWbWI+hn/QcgjsCEocKioqoHV1oDBKIoWKB+gZt/xK1c2xMTl1h8mjAwJp/VHjh46J2A811+Cs5KgmNGJmthkg2/APp2r1FyEHEMANrXxEuFqPFMQhAXGdQVmI4hIUZ6k66W1cIKDALDlXa1ueZu/8WzIEEEfByCoF6WSDB/nhjF9ZZf2aV13288TFwU4CR51R9U30IJtRgz1ets3FDw/pcIiJ7kjAY8ujEvk1dxWMC82OTQy50g/QfpjxdvGLl5CDS9+hLrurkRbcCeEn5sMxiwnq9Q+I8ZxbWz4+agOp+7axRRG7TaNvbLWniTAyOawrCSuVnvAAv6PnEC9s=
+  - secure: olxW0+j5lzr5SBli2mF1JZoLt9ct6N6XJbzG3s0iJb/b0RSegEhNJx+KWvZyFKEaTwJKG30RcIU2Fe/WjbsdoVch9QLRrLSLVnAW6yodZmb0JDz91sSw6uJBz8W6dZY5De1djA+BO7/zJcKn1W4ShBE0PW1OUYKsITcbeE/6UmTP3ohl3xvKp/tlwUP2FChF4JcESDIR5hPwTXdZ8NvvKeANBJBn2zR/cSekOLE51nJ2xvZdnMq6ByhLsT4N5k9KIg3oWA8+S2cVLN22Q4ZVICv137zZQtYGxh2wmFHBOUnLBKtdHydubGXYVNKRdj2nFGLB2k/4wCnrgIki2CBo819bk8JB+4n8J7dhQNsYpsVJac/+UF+s3iOtvhfFXCk/4Q0wyW3eC4AWMNsw5p3kREinmPyphLMWwRe9UpKCUTbxxd7MfWxr5fHakT7KYswlU6ngsNjweTQ9nl0/lqMDCvhoXj8MCrwiXgk/Su4utOVUTmeykf2xwXv0b+OadYM10RBhmusdeNb483lrw95BfczvK99VffETR93c/sdJE8QVFD/uzPE5bxWqrUoE6r/IuOM1mQcLm0R62hmA9DMdtGLKRkrXVmzgQjjqRLC78GSGkTi0jskZpHZjDJy4Gxa3K3j22JKu79aH7fEWjTMsruyY9eqWlJry05THUsMHRfU=
